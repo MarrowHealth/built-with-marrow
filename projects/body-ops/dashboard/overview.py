@@ -29,27 +29,26 @@ END = "date.add(d: duration(v: int(v: {secs} * 1000000000.0) - 1), to: r._time)"
 tl = flux(f'''sl = from(bucket: "health") |> {RANGE}
   |> filter(fn: (r) => r._measurement == "sample" and r.metric == "sleep_analysis" and r._field == "dur_s")
   |> filter(fn: (r) => r.stage == "rem" or r.stage == "core" or r.stage == "deep" or r.stage == "awake") |> group()
-ml = from(bucket: "health") |> {RANGE}
-  |> filter(fn: (r) => r._measurement == "meal" and r._field == "kcal") |> group()
 wk = from(bucket: "health") |> {RANGE}
   |> filter(fn: (r) => r._measurement == "workout" and r._field == "duration_min") |> group()
 union(tables: [
   sl |> map(fn: (r) => ({{_time: r._time, row: "Sleep", _value: if r.stage == "rem" then "REM" else if r.stage == "core" then "Core" else if r.stage == "deep" then "Deep" else "Awake"}})),
   sl |> map(fn: (r) => ({{_time: {END.format(secs="r._value")}, row: "Sleep", _value: "-"}})),
-  ml |> map(fn: (r) => ({{_time: r._time, row: "Food", _value: "Meal"}})),
-  ml |> map(fn: (r) => ({{_time: {END.format(secs="1200.0")}, row: "Food", _value: "-"}})),
   wk |> map(fn: (r) => ({{_time: r._time, row: "Workout", _value: r.activity}})),
   wk |> map(fn: (r) => ({{_time: {END.format(secs="r._value * 60.0")}, row: "Workout", _value: "-"}}))])
   |> group(columns: ["row"]) |> sort(columns: ["_time"])''')
 STATES = {**STAGE, "Meal": GREEN, "Running": CORAL, "Strength": CORAL, "Cycling": CORAL, "Walking": CORAL}
-b.add({"type": "state-timeline", "title": "Sleep, food and workouts", "targets": [target(tl)], "timeFrom": "48h",
+# No food row: a meal's time is Marrow's default for its slot (breakfast 8 am,
+# lunch noon, dinner 6 pm) unless it was logged as it was eaten, so meals
+# would sit inside sleep and workouts that they never overlapped.
+b.add({"type": "state-timeline", "title": "Sleep and workouts", "targets": [target(tl)], "timeFrom": "48h",
        "fieldConfig": {"defaults": {"color": color(GREY), "custom": {"fillOpacity": 85, "lineWidth": 0},
                                     "mappings": [{"type": "value", "options": {"-": {"color": "transparent", "text": " ",
                                                                                      "index": 99}}}] +
                                     [{"type": "value", "options": {k: {"color": c, "index": i}}}
                                      for i, (k, c) in enumerate(STATES.items())]}, "overrides": []},
        "options": {"showValue": "never", "mergeValues": True, "rowHeight": 0.8, "legend": {"showLegend": False},
-                   "tooltip": {"mode": "single"}}}, 0, 24, 6, newline=True)
+                   "tooltip": {"mode": "single"}}}, 0, 24, 5, newline=True)
 
 # ---- the year (the watch has all of it) ------------------------------------------------------
 b.row("The year")
@@ -135,17 +134,19 @@ b.add({"type": "barchart", "title": "What I log most", "targets": [target(foods)
                        "overrides": []},
        "options": {"xField": "Food", "orientation": "horizontal", "showValue": "auto", "barWidth": 0.7,
                    "legend": {"showLegend": False}}}, 16, 8, 9, newline=True)
-when = flux('''from(bucket: "health") |> range(start: -365d)
+slots = flux('''from(bucket: "health") |> range(start: -365d)
   |> filter(fn: (r) => r._measurement == "meal" and r._field == "kcal")
-  |> map(fn: (r) => ({hour: date.hour(t: r._time), _value: r._value}))
-  |> group(columns: ["hour"]) |> sum() |> group() |> sort(columns: ["hour"])
-  |> map(fn: (r) => ({Hour: if r.hour == 0 then "12a" else if r.hour < 12 then string(v: r.hour) + "a"
-                              else if r.hour == 12 then "12p" else string(v: r.hour - 12) + "p", Calories: r._value}))''')
-b.add({"type": "barchart", "title": "When I eat: calories logged by hour of day", "targets": [target(when)],
+  |> group(columns: ["meal"]) |> sum() |> group()
+  |> map(fn: (r) => ({rank: if r.meal == "breakfast" then 1 else if r.meal == "lunch" then 2 else if r.meal == "dinner" then 3 else 4,
+                      Meal: if r.meal == "breakfast" then "Breakfast" else if r.meal == "lunch" then "Lunch"
+                            else if r.meal == "dinner" then "Dinner" else "Snacks", Calories: r._value}))
+  |> sort(columns: ["rank"]) |> drop(columns: ["rank"])''')
+b.add({"type": "barchart", "title": "Calories by meal", "targets": [target(slots)],
+       "description": "Everything logged, by the meal it was logged to.",
        "fieldConfig": {"defaults": {"color": color(AMBER), "custom": {"fillOpacity": 85, "lineWidth": 0}},
                        "overrides": [by_name("Calories", more=[{"id": "unit", "value": "suffix: kcal"}])]},
-       "options": {"xField": "Hour", "orientation": "vertical", "showValue": "never", "barWidth": 0.8,
-                   "legend": {"showLegend": False}, "xTickLabelSpacing": 0}}, 0, 12, 8)
+       "options": {"xField": "Meal", "orientation": "vertical", "showValue": "auto", "barWidth": 0.6,
+                   "legend": {"showLegend": False}}}, 0, 12, 8)
 prot = flux(f'''from(bucket: "health") |> {RANGE}
   |> filter(fn: (r) => r._measurement == "meal" and r._field == "protein_g")
   |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)''')

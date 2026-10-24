@@ -457,7 +457,7 @@
   },
   {
    "type": "state-timeline",
-   "title": "Sleep, food and workouts",
+   "title": "Sleep and workouts",
    "targets": [
     {
      "refId": "A",
@@ -465,7 +465,7 @@
       "type": "influxdb",
       "uid": "influx"
      },
-     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nsl = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sample\" and r.metric == \"sleep_analysis\" and r._field == \"dur_s\")\n  |> filter(fn: (r) => r.stage == \"rem\" or r.stage == \"core\" or r.stage == \"deep\" or r.stage == \"awake\") |> group()\nml = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"kcal\") |> group()\nwk = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"workout\" and r._field == \"duration_min\") |> group()\nunion(tables: [\n  sl |> map(fn: (r) => ({_time: r._time, row: \"Sleep\", _value: if r.stage == \"rem\" then \"REM\" else if r.stage == \"core\" then \"Core\" else if r.stage == \"deep\" then \"Deep\" else \"Awake\"})),\n  sl |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 1000000000.0) - 1), to: r._time), row: \"Sleep\", _value: \"-\"})),\n  ml |> map(fn: (r) => ({_time: r._time, row: \"Food\", _value: \"Meal\"})),\n  ml |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: 1200.0 * 1000000000.0) - 1), to: r._time), row: \"Food\", _value: \"-\"})),\n  wk |> map(fn: (r) => ({_time: r._time, row: \"Workout\", _value: r.activity})),\n  wk |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 60.0 * 1000000000.0) - 1), to: r._time), row: \"Workout\", _value: \"-\"}))])\n  |> group(columns: [\"row\"]) |> sort(columns: [\"_time\"])"
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nsl = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sample\" and r.metric == \"sleep_analysis\" and r._field == \"dur_s\")\n  |> filter(fn: (r) => r.stage == \"rem\" or r.stage == \"core\" or r.stage == \"deep\" or r.stage == \"awake\") |> group()\nwk = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"workout\" and r._field == \"duration_min\") |> group()\nunion(tables: [\n  sl |> map(fn: (r) => ({_time: r._time, row: \"Sleep\", _value: if r.stage == \"rem\" then \"REM\" else if r.stage == \"core\" then \"Core\" else if r.stage == \"deep\" then \"Deep\" else \"Awake\"})),\n  sl |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 1000000000.0) - 1), to: r._time), row: \"Sleep\", _value: \"-\"})),\n  wk |> map(fn: (r) => ({_time: r._time, row: \"Workout\", _value: r.activity})),\n  wk |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 60.0 * 1000000000.0) - 1), to: r._time), row: \"Workout\", _value: \"-\"}))])\n  |> group(columns: [\"row\"]) |> sort(columns: [\"_time\"])"
     }
    ],
    "timeFrom": "48h",
@@ -595,7 +595,7 @@
     "x": 0,
     "y": 18,
     "w": 24,
-    "h": 6
+    "h": 5
    }
   },
   {
@@ -605,7 +605,7 @@
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 24,
+    "y": 23,
     "w": 24,
     "h": 1
    },
@@ -670,7 +670,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 25,
+    "y": 24,
     "w": 24,
     "h": 10
    }
@@ -821,7 +821,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 35,
+    "y": 34,
     "w": 12,
     "h": 9
    }
@@ -1223,7 +1223,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 35,
+    "y": 34,
     "w": 12,
     "h": 9
    }
@@ -1334,7 +1334,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 44,
+    "y": 43,
     "w": 12,
     "h": 8
    }
@@ -1453,7 +1453,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 44,
+    "y": 43,
     "w": 12,
     "h": 8
    }
@@ -1533,7 +1533,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 52,
+    "y": 51,
     "w": 8,
     "h": 8
    }
@@ -1613,7 +1613,7 @@
    },
    "gridPos": {
     "x": 8,
-    "y": 52,
+    "y": 51,
     "w": 8,
     "h": 8
    }
@@ -1696,7 +1696,7 @@
    },
    "gridPos": {
     "x": 16,
-    "y": 52,
+    "y": 51,
     "w": 8,
     "h": 8
    }
@@ -1708,7 +1708,7 @@
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 60,
+    "y": 59,
     "w": 24,
     "h": 1
    },
@@ -1827,7 +1827,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 61,
+    "y": 60,
     "w": 12,
     "h": 9
    }
@@ -1942,7 +1942,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 61,
+    "y": 60,
     "w": 4,
     "h": 9
    }
@@ -1989,14 +1989,14 @@
    },
    "gridPos": {
     "x": 16,
-    "y": 61,
+    "y": 60,
     "w": 8,
     "h": 9
    }
   },
   {
    "type": "barchart",
-   "title": "When I eat: calories logged by hour of day",
+   "title": "Calories by meal",
    "targets": [
     {
      "refId": "A",
@@ -2004,9 +2004,10 @@
       "type": "influxdb",
       "uid": "influx"
      },
-     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"kcal\")\n  |> map(fn: (r) => ({hour: date.hour(t: r._time), _value: r._value}))\n  |> group(columns: [\"hour\"]) |> sum() |> group() |> sort(columns: [\"hour\"])\n  |> map(fn: (r) => ({Hour: if r.hour == 0 then \"12a\" else if r.hour < 12 then string(v: r.hour) + \"a\"\n                              else if r.hour == 12 then \"12p\" else string(v: r.hour - 12) + \"p\", Calories: r._value}))"
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"kcal\")\n  |> group(columns: [\"meal\"]) |> sum() |> group()\n  |> map(fn: (r) => ({rank: if r.meal == \"breakfast\" then 1 else if r.meal == \"lunch\" then 2 else if r.meal == \"dinner\" then 3 else 4,\n                      Meal: if r.meal == \"breakfast\" then \"Breakfast\" else if r.meal == \"lunch\" then \"Lunch\"\n                            else if r.meal == \"dinner\" then \"Dinner\" else \"Snacks\", Calories: r._value}))\n  |> sort(columns: [\"rank\"]) |> drop(columns: [\"rank\"])"
     }
    ],
+   "description": "Everything logged, by the meal it was logged to.",
    "fieldConfig": {
     "defaults": {
      "color": {
@@ -2034,14 +2035,13 @@
     ]
    },
    "options": {
-    "xField": "Hour",
+    "xField": "Meal",
     "orientation": "vertical",
-    "showValue": "never",
-    "barWidth": 0.8,
+    "showValue": "auto",
+    "barWidth": 0.6,
     "legend": {
      "showLegend": false
-    },
-    "xTickLabelSpacing": 0
+    }
    },
    "id": 25,
    "datasource": {
@@ -2050,7 +2050,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 70,
+    "y": 69,
     "w": 12,
     "h": 8
    }
@@ -2130,7 +2130,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 70,
+    "y": 69,
     "w": 12,
     "h": 8
    }
@@ -2142,7 +2142,7 @@
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 78,
+    "y": 77,
     "w": 24,
     "h": 1
    },
@@ -2336,7 +2336,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 79,
+    "y": 78,
     "w": 12,
     "h": 9
    }
@@ -2409,7 +2409,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 79,
+    "y": 78,
     "w": 12,
     "h": 9
    }
@@ -2421,7 +2421,7 @@
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 88,
+    "y": 87,
     "w": 24,
     "h": 1
    },
@@ -2502,7 +2502,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 89,
+    "y": 88,
     "w": 12,
     "h": 8
    }
@@ -2609,7 +2609,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 89,
+    "y": 88,
     "w": 12,
     "h": 8
    }

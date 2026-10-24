@@ -1,6 +1,6 @@
 # Body Ops
 
-Every signal your phone, watch and logs collect, on one Grafana dashboard that updates itself every hour: a year of heart rate by the hour, sleep stages and bed and wake times, resting heart rate and HRV, steps and exercise, food by macro and by hour, training volume by muscle and estimated one rep maxes, daylight and sound.
+Every signal your phone, watch and logs collect, on one Grafana dashboard that updates itself every hour: a year of heart rate by the hour, sleep stages and bed and wake times, resting heart rate and HRV, steps and exercise, food by macro and by meal, training volume by muscle and estimated one rep maxes, daylight and sound.
 
 ![Body Ops with a year of made-up demo data](docs/dashboard.webp)
 
@@ -82,9 +82,9 @@ Raw samples are big: about 70,000 readings and 8 MB for every month of history. 
 | Section | Panels |
 |---|---|
 | Today | sleep last night, HRV, resting heart rate, steps, protein, daylight, each with its 30 day trend |
-| The last 48 hours | heart rate, and a timeline of every sleep stage, meal and workout |
+| The last 48 hours | heart rate, and a timeline of every sleep stage and workout |
 | The year | heart rate by hour of day for every day, sleep stages per night, bed and wake times, resting heart rate and HRV, steps, exercise minutes, active calories, wrist temperature |
-| Food | calories by macro per day, where calories come from, most logged foods, calories by hour of day, protein per day |
+| Food | calories by macro per day, where calories come from, most logged foods, calories by meal, protein per day |
 | Training | weekly volume by muscle, estimated one rep max for your five most trained lifts |
 | Surroundings | daylight, environmental and headphone sound levels |
 
@@ -98,10 +98,12 @@ The bridge (`bridge/bridge.py`, standard library Python) accepts every automatio
 | Health metrics, raw samples | `sample` | metric, units, stage, source | sample start |
 | Workouts | `workout` | activity, source | start |
 | Strength log | `set` | exercise, muscle, session, set_type, unit, n | set time |
-| Nutrition diary | `meal` (name in `food`, nutrients as `n_*`) | day, idx, meal | logged time |
+| Nutrition diary | `meal` (name in `food`, nutrients as `n_*`) | day, idx, meal | logged time (see below) |
 | Symptoms and mood | `symptom`, `mood` | name and severity, kind | start or time |
 
 Marrow re-sends the last two days on every "Since last run" on purpose, so the bridge treats every point as latest-wins, and a food day is cleared and rewritten so deleted entries disappear. Each set is tagged with its main muscle from `bridge/muscles.json`, built from the public domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db).
+
+A meal's time is when it was logged, and Marrow uses a default time for each meal (breakfast 8 am, lunch noon, dinner 6 pm) when you log into a meal rather than as you eat. So the dashboard groups food by meal and by day, never by the clock.
 
 To rebuild InfluxDB from the archive: `docker compose exec bridge python3 /app/bridge.py replay`.
 
