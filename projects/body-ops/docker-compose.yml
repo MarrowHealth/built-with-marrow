@@ -1,0 +1,78 @@
+# Body Ops: InfluxDB 2, Grafana and the bridge that turns Marrow's
+# automations into InfluxDB points. Everything listens on 127.0.0.1 only.
+# The bridge needs a public HTTPS address so your phone can reach it: see
+# "Give the bridge an address" in README.md (Cloudflare Tunnel is the
+# optional "tunnel" profile below).
+name: body-ops
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:?set INFLUX_PASSWORD in .env}
+      DOCKER_INFLUXDB_INIT_ORG: marrow
+      DOCKER_INFLUXDB_INIT_BUCKET: health
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?set INFLUX_TOKEN in .env}
+    volumes:
+      - influxdb:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    ports:
+      - "127.0.0.1:${INFLUX_PORT:-8086}:8086"
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    restart: unless-stopped
+    depends_on: [influxdb]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?set GRAFANA_PASSWORD in .env}
+      GF_USERS_DEFAULT_THEME: dark
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana-dashboards/body-ops.json
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_NEWS_NEWS_FEED_ENABLED: "false"
+      INFLUX_TOKEN: ${INFLUX_TOKEN}
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana-dashboards:ro
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+
+  bridge:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    depends_on: [influxdb]
+    command: ["python3", "-u", "/app/bridge.py"]
+    environment:
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: ${INFLUX_TOKEN}
+      BRIDGE_TOKEN: ${BRIDGE_TOKEN:?set BRIDGE_TOKEN in .env}
+      TZ_NAME: ${TZ_NAME:-UTC}
+      ARCHIVE_DIR: /data/archive
+    volumes:
+      - ./bridge:/app:ro
+      - archive:/data/archive
+    ports:
+      - "127.0.0.1:${BRIDGE_PORT:-8799}:8799"
+
+  # Optional public address through Cloudflare Tunnel:
+  #   docker compose --profile tunnel up -d
+  # Set TUNNEL_TOKEN in .env and point the tunnel's public hostname at
+  # http://bridge:8799 in the Cloudflare dashboard.
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.3
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on: [bridge]
+    profiles: [tunnel]
+
+volumes:
+  influxdb:
+  influxdb-config:
+  grafana:
+  archive:

@@ -1,0 +1,2643 @@
+{
+ "uid": "body-ops",
+ "title": "Body Ops",
+ "tags": [
+  "marrow"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "refresh": "15m",
+ "schemaVersion": 41,
+ "version": 1,
+ "time": {
+  "from": "now-30d",
+  "to": "now"
+ },
+ "fiscalYearStartMonth": 0,
+ "liveNow": false,
+ "panels": [
+  {
+   "type": "text",
+   "title": "",
+   "transparent": true,
+   "options": {
+    "mode": "markdown",
+    "content": "## Body Ops\nHeart, sleep, movement, food, lifting and surroundings, in one place."
+   },
+   "id": 1,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 3
+   }
+  },
+  {
+   "type": "row",
+   "title": "Today, against my normal",
+   "id": 2,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 3,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "Sleep last night",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"sleep_analysis\" and r._field == \"totalSleep\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "decimals": 1,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#7c5cff"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 3,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "HRV",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"heart_rate_variability\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: ms",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#22c3b5"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 4,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 4,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Resting heart rate",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"resting_heart_rate\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: bpm",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#ff5d73"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 5,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Steps today",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"step_count\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3b82f6"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 6,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Protein today",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"protein_g\")\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: true) |> fill(value: 0.0)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "massg",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#f5a524"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 7,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Daylight today",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"time_in_daylight\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: min",
+     "decimals": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#4ade80"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "graphMode": "area",
+    "colorMode": "value",
+    "textMode": "value",
+    "justifyMode": "center",
+    "showPercentChange": false,
+    "wideLayout": true
+   },
+   "id": 8,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 20,
+    "y": 4,
+    "w": 4,
+    "h": 5
+   }
+  },
+  {
+   "type": "row",
+   "title": "The last 48 hours",
+   "id": 9,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 9,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Heart rate",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sample\" and r.metric == \"heart_rate\" and r._field == \"value\")\n  |> group() |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: bpm",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 18,
+      "lineWidth": 2,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "opacity"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Heart rate"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#ff5d73"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "48h",
+   "id": 10,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 10,
+    "w": 24,
+    "h": 8
+   }
+  },
+  {
+   "type": "state-timeline",
+   "title": "Sleep, food and workouts",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nsl = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sample\" and r.metric == \"sleep_analysis\" and r._field == \"dur_s\")\n  |> filter(fn: (r) => r.stage == \"rem\" or r.stage == \"core\" or r.stage == \"deep\" or r.stage == \"awake\") |> group()\nml = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"kcal\") |> group()\nwk = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"workout\" and r._field == \"duration_min\") |> group()\nunion(tables: [\n  sl |> map(fn: (r) => ({_time: r._time, row: \"Sleep\", _value: if r.stage == \"rem\" then \"REM\" else if r.stage == \"core\" then \"Core\" else if r.stage == \"deep\" then \"Deep\" else \"Awake\"})),\n  sl |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 1000000000.0) - 1), to: r._time), row: \"Sleep\", _value: \"-\"})),\n  ml |> map(fn: (r) => ({_time: r._time, row: \"Food\", _value: \"Meal\"})),\n  ml |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: 1200.0 * 1000000000.0) - 1), to: r._time), row: \"Food\", _value: \"-\"})),\n  wk |> map(fn: (r) => ({_time: r._time, row: \"Workout\", _value: r.activity})),\n  wk |> map(fn: (r) => ({_time: date.add(d: duration(v: int(v: r._value * 60.0 * 1000000000.0) - 1), to: r._time), row: \"Workout\", _value: \"-\"}))])\n  |> group(columns: [\"row\"]) |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "timeFrom": "48h",
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#8b93a7"
+     },
+     "custom": {
+      "fillOpacity": 85,
+      "lineWidth": 0
+     },
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "-": {
+         "color": "transparent",
+         "text": " ",
+         "index": 99
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Deep": {
+         "color": "#7c5cff",
+         "index": 0
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Core": {
+         "color": "#3b82f6",
+         "index": 1
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "REM": {
+         "color": "#22c3b5",
+         "index": 2
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Awake": {
+         "color": "#f5a524",
+         "index": 3
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Meal": {
+         "color": "#4ade80",
+         "index": 4
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Running": {
+         "color": "#ff5d73",
+         "index": 5
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Strength": {
+         "color": "#ff5d73",
+         "index": 6
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Cycling": {
+         "color": "#ff5d73",
+         "index": 7
+        }
+       }
+      },
+      {
+       "type": "value",
+       "options": {
+        "Walking": {
+         "color": "#ff5d73",
+         "index": 8
+        }
+       }
+      }
+     ]
+    },
+    "overrides": []
+   },
+   "options": {
+    "showValue": "never",
+    "mergeValues": true,
+    "rowHeight": 0.8,
+    "legend": {
+     "showLegend": false
+    },
+    "tooltip": {
+     "mode": "single"
+    }
+   },
+   "id": 11,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 18,
+    "w": 24,
+    "h": 6
+   }
+  },
+  {
+   "type": "row",
+   "title": "The year",
+   "id": 12,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "heatmap",
+   "title": "Heart rate by hour of day, every day for a year",
+   "timeFrom": "365d",
+   "description": "Each column is a day, each row an hour (midnight at the bottom). Brighter is faster.",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"sample\" and r.metric == \"heart_rate\" and r._field == \"value\")\n  |> group() |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: date.truncate(t: r._time, unit: 1d), _value: r._value,\n                      hour: if date.hour(t: r._time) < 10 then \"0\" + string(v: date.hour(t: r._time)) else string(v: date.hour(t: r._time))}))\n  |> group(columns: [\"hour\"]) |> aggregateWindow(every: 1d, fn: mean, createEmpty: false)\n  |> map(fn: (r) => ({_time: r._time, _value: r._value, _field: r.hour})) |> group(columns: [\"_field\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: bpm"
+    },
+    "overrides": []
+   },
+   "options": {
+    "calculate": false,
+    "rowsFrame": {
+     "layout": "unknown"
+    },
+    "cellGap": 0,
+    "yAxis": {
+     "axisPlacement": "left",
+     "reverse": false,
+     "axisLabel": "Hour"
+    },
+    "color": {
+     "mode": "scheme",
+     "scheme": "Magma",
+     "steps": 64,
+     "exponent": 0.5,
+     "reverse": false,
+     "min": 45,
+     "max": 120
+    },
+    "legend": {
+     "show": true
+    },
+    "tooltip": {
+     "mode": "single",
+     "yHistogram": false
+    },
+    "exemplars": {
+     "color": "transparent"
+    }
+   },
+   "id": 13,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 25,
+    "w": 24,
+    "h": 10
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Sleep stages per night",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"sleep_analysis\")\n  |> filter(fn: (r) => r._field == \"deep\" or r._field == \"core\" or r._field == \"rem\" or r._field == \"awake\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"_time\", \"deep\", \"core\", \"rem\", \"awake\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 92,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "deep"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Deep"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "core"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Core"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3b82f6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "rem"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "REM"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "awake"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Awake"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "indexByName": {
+       "_time": 0,
+       "deep": 1,
+       "core": 2,
+       "rem": 3,
+       "awake": 4
+      }
+     }
+    }
+   ],
+   "id": 14,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 35,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "When I fell asleep and woke up",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"sleep_analysis\")\n  |> filter(fn: (r) => r._field == \"sleepStart_s\" or r._field == \"sleepEnd_s\" or r._field == \"tz_offset_min\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({_time: r._time,\n      bed: (r.sleepStart_s + r.tz_offset_min * 60.0) % 86400.0 / 3600.0,\n      wake: (r.sleepEnd_s + r.tz_offset_min * 60.0) % 86400.0 / 3600.0 + 24.0}))\n  |> map(fn: (r) => ({r with bed: if r.bed < 12.0 then r.bed + 24.0 else r.bed}))"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "drawStyle": "points",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "always",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     },
+     "mappings": [
+      {
+       "type": "range",
+       "options": {
+        "from": 12.0,
+        "to": 12.9999,
+        "result": {
+         "text": "12 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 13.0,
+        "to": 13.9999,
+        "result": {
+         "text": "1 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 14.0,
+        "to": 14.9999,
+        "result": {
+         "text": "2 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 15.0,
+        "to": 15.9999,
+        "result": {
+         "text": "3 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 16.0,
+        "to": 16.9999,
+        "result": {
+         "text": "4 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 17.0,
+        "to": 17.9999,
+        "result": {
+         "text": "5 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 18.0,
+        "to": 18.9999,
+        "result": {
+         "text": "6 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 19.0,
+        "to": 19.9999,
+        "result": {
+         "text": "7 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 20.0,
+        "to": 20.9999,
+        "result": {
+         "text": "8 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 21.0,
+        "to": 21.9999,
+        "result": {
+         "text": "9 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 22.0,
+        "to": 22.9999,
+        "result": {
+         "text": "10 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 23.0,
+        "to": 23.9999,
+        "result": {
+         "text": "11 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 24.0,
+        "to": 24.9999,
+        "result": {
+         "text": "12 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 25.0,
+        "to": 25.9999,
+        "result": {
+         "text": "1 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 26.0,
+        "to": 26.9999,
+        "result": {
+         "text": "2 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 27.0,
+        "to": 27.9999,
+        "result": {
+         "text": "3 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 28.0,
+        "to": 28.9999,
+        "result": {
+         "text": "4 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 29.0,
+        "to": 29.9999,
+        "result": {
+         "text": "5 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 30.0,
+        "to": 30.9999,
+        "result": {
+         "text": "6 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 31.0,
+        "to": 31.9999,
+        "result": {
+         "text": "7 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 32.0,
+        "to": 32.9999,
+        "result": {
+         "text": "8 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 33.0,
+        "to": 33.9999,
+        "result": {
+         "text": "9 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 34.0,
+        "to": 34.9999,
+        "result": {
+         "text": "10 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 35.0,
+        "to": 35.9999,
+        "result": {
+         "text": "11 am"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 36.0,
+        "to": 36.9999,
+        "result": {
+         "text": "12 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 37.0,
+        "to": 37.9999,
+        "result": {
+         "text": "1 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 38.0,
+        "to": 38.9999,
+        "result": {
+         "text": "2 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 39.0,
+        "to": 39.9999,
+        "result": {
+         "text": "3 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 40.0,
+        "to": 40.9999,
+        "result": {
+         "text": "4 pm"
+        }
+       }
+      },
+      {
+       "type": "range",
+       "options": {
+        "from": 41.0,
+        "to": 41.9999,
+        "result": {
+         "text": "5 pm"
+        }
+       }
+      }
+     ],
+     "decimals": 1
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bed"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Fell asleep"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "wake"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Woke up"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 15,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 35,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Resting heart rate and HRV, 7 day averages",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"resting_heart_rate\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> timedMovingAverage(every: 1d, period: 7d)"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"heart_rate_variability\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> timedMovingAverage(every: 1d, period: 7d)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Resting heart rate (bpm)"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#ff5d73"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "HRV (ms)"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       },
+       {
+        "id": "custom.axisPlacement",
+        "value": "right"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 16,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 44,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Steps per day",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"step_count\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"step_count\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])\n  |> timedMovingAverage(every: 1d, period: 7d)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Steps"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3b82f6"
+        }
+       },
+       {
+        "id": "custom.drawStyle",
+        "value": "bars"
+       },
+       {
+        "id": "custom.fillOpacity",
+        "value": 60
+       },
+       {
+        "id": "custom.lineWidth",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "7 day average"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 17,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 44,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Exercise minutes per day",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"apple_exercise_time\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: min",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 70,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Exercise"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#4ade80"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 18,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 52,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Active calories per day",
+   "description": "Energy burned through movement, from the watch.",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"active_energy\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: kcal",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 70,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Active calories"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#ff5d73"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 19,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 52,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Wrist temperature at night",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"wrist_temperature\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     },
+     "decimals": 1,
+     "min": 34.5,
+     "max": 37.5
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Wrist temperature"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 20,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 52,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "row",
+   "title": "Food",
+   "id": 21,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 60,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Calories per day, by macro",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meal\" and (r._field == \"protein_g\" or r._field == \"carbs_g\" or r._field == \"fat_g\"))\n  |> group(columns: [\"_field\"]) |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)\n  |> map(fn: (r) => ({r with _value: if r._field == \"fat_g\" then r._value * 9.0 else r._value * 4.0}))"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: kcal",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 92,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "protein_g"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Protein"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "carbs_g"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Carbs"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "fat_g"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Fat"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "75d",
+   "id": 22,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 61,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "piechart",
+   "title": "Where my calories come from",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: -75d)\n  |> filter(fn: (r) => r._measurement == \"meal\" and (r._field == \"protein_g\" or r._field == \"carbs_g\" or r._field == \"fat_g\"))\n  |> group(columns: [\"_field\"]) |> sum() |> group()\n  |> map(fn: (r) => ({_field: if r._field == \"protein_g\" then \"Protein\" else if r._field == \"carbs_g\" then \"Carbs\" else \"Fat\",\n                      _value: if r._field == \"fat_g\" then r._value * 9.0 else r._value * 4.0}))"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "rowsToFields",
+     "options": {
+      "mappings": [
+       {
+        "fieldName": "_field",
+        "handlerKey": "field.name"
+       },
+       {
+        "fieldName": "_value",
+        "handlerKey": "field.value"
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: kcal",
+     "decimals": 0
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Protein"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Carbs"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Fat"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "pieType": "donut",
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "legend": {
+     "showLegend": false
+    },
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "tooltip": {
+     "mode": "single"
+    }
+   },
+   "id": 23,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 61,
+    "w": 4,
+    "h": 9
+   }
+  },
+  {
+   "type": "barchart",
+   "title": "What I log most",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"health\") |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"food\")\n  |> map(fn: (r) => ({_time: r._time, food: r._value, _value: 1}))\n  |> group(columns: [\"food\"]) |> count() |> group()\n  |> map(fn: (r) => ({Food: r.food, Times: r._value}))\n  |> sort(columns: [\"Times\"], desc: true) |> limit(n: 10)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#22c3b5"
+     },
+     "custom": {
+      "fillOpacity": 85,
+      "lineWidth": 0
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "xField": "Food",
+    "orientation": "horizontal",
+    "showValue": "auto",
+    "barWidth": 0.7,
+    "legend": {
+     "showLegend": false
+    }
+   },
+   "id": 24,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 61,
+    "w": 8,
+    "h": 9
+   }
+  },
+  {
+   "type": "barchart",
+   "title": "When I eat: calories logged by hour of day",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: -365d)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"kcal\")\n  |> map(fn: (r) => ({hour: date.hour(t: r._time), _value: r._value}))\n  |> group(columns: [\"hour\"]) |> sum() |> group() |> sort(columns: [\"hour\"])\n  |> map(fn: (r) => ({Hour: if r.hour == 0 then \"12a\" else if r.hour < 12 then string(v: r.hour) + \"a\"\n                              else if r.hour == 12 then \"12p\" else string(v: r.hour - 12) + \"p\", Calories: r._value}))"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#f5a524"
+     },
+     "custom": {
+      "fillOpacity": 85,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Calories"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: kcal"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "Hour",
+    "orientation": "vertical",
+    "showValue": "never",
+    "barWidth": 0.8,
+    "legend": {
+     "showLegend": false
+    },
+    "xTickLabelSpacing": 0
+   },
+   "id": 25,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 70,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Protein per day",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"meal\" and r._field == \"protein_g\")\n  |> group() |> aggregateWindow(every: 1d, fn: sum, createEmpty: false)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "massg",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 80,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Protein"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "75d",
+   "id": 26,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 70,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "row",
+   "title": "Training",
+   "id": 27,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 78,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Volume per week (weight x reps), by muscle",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nsets = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"set\" and (r._field == \"weight\" or r._field == \"reps\" or r._field == \"est_1rm\"))\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with volume: r.weight * r.reps}))\nsets |> group(columns: [\"muscle\"]) |> keep(columns: [\"_time\", \"volume\", \"muscle\"])\n  |> rename(columns: {volume: \"_value\"}) |> aggregateWindow(every: 1w, offset: -3d, fn: sum, createEmpty: false)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 92,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byRegexp",
+       "options": ".*"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "${__field.labels.muscle}"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Chest"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#ff5d73"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Back"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3b82f6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Shoulders"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#f5a524"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Biceps"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#22c3b5"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Triceps"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Legs"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#4ade80"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Core"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#8b93a7"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Other"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c4c9d4"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "35d",
+   "id": 28,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 79,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Estimated one rep max, my five most trained lifts",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nsets = from(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"set\" and (r._field == \"weight\" or r._field == \"reps\" or r._field == \"est_1rm\"))\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> map(fn: (r) => ({r with volume: r.weight * r.reps}))\ntop = from(bucket: \"health\") |> range(start: -60d)\n  |> filter(fn: (r) => r._measurement == \"set\" and r._field == \"est_1rm\" and r._value > 0.0)\n  |> group(columns: [\"exercise\"]) |> count() |> group() |> sort(columns: [\"_value\"], desc: true) |> limit(n: 5)\n  |> findColumn(fn: (key) => true, column: \"exercise\")\nsets |> filter(fn: (r) => contains(value: r.exercise, set: top)) |> group(columns: [\"exercise\"])\n  |> keep(columns: [\"_time\", \"est_1rm\", \"exercise\"]) |> rename(columns: {est_1rm: \"_value\"})\n  |> aggregateWindow(every: 1d, fn: max, createEmpty: false)"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "always",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byRegexp",
+       "options": ".*"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "${__field.labels.exercise}"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "35d",
+   "id": 29,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 79,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "Surroundings",
+   "id": 30,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 88,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "Daylight per day",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"time_in_daylight\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: min",
+     "custom": {
+      "drawStyle": "bars",
+      "fillOpacity": 70,
+      "lineWidth": 0,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Daylight"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#4ade80"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": false,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 31,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 89,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Sound levels",
+   "description": "",
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"environmental_audio_exposure\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "import \"timezone\"\nimport \"date\"\noption location = timezone.location(name: \"${timezone}\")\nfrom(bucket: \"health\") |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.metric == \"headphone_audio_exposure\" and r._field == \"qty\")\n  |> keep(columns: [\"_time\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: dB",
+     "custom": {
+      "drawStyle": "line",
+      "fillOpacity": 0,
+      "lineWidth": 2,
+      "showPoints": "never",
+      "pointSize": 6,
+      "spanNulls": false,
+      "lineInterpolation": "linear",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "barAlignment": 0,
+      "axisBorderShow": false,
+      "gradientMode": "none"
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "A"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Surroundings"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3b82f6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byFrameRefID",
+       "options": "B"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Headphones"
+       },
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#7c5cff"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "none"
+    }
+   },
+   "timeFrom": "365d",
+   "id": 32,
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 89,
+    "w": 12,
+    "h": 8
+   }
+  }
+ ],
+ "templating": {
+  "list": [
+   {
+    "type": "textbox",
+    "name": "timezone",
+    "label": "Time zone",
+    "query": "UTC",
+    "current": {
+     "text": "UTC",
+     "value": "UTC"
+    },
+    "options": [
+     {
+      "selected": true,
+      "text": "UTC",
+      "value": "UTC"
+     }
+    ],
+    "description": "IANA name, e.g. America/New_York or Europe/London"
+   }
+  ]
+ },
+ "annotations": {
+  "list": []
+ }
+}

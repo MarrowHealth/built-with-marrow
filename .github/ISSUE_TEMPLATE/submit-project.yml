@@ -1,0 +1,112 @@
+name: Submit a project
+description: Show what you built with a Marrow connection. Accepted projects appear on marrowhealthapp.com/built-with.
+title: "Project: "
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing. We read every submission within a week. Fill in what you can: we turn it into a listing and check it with you before it goes live.
+  - type: input
+    id: name
+    attributes:
+      label: Project name
+      placeholder: Body Ops
+    validations:
+      required: true
+  - type: input
+    id: summary
+    attributes:
+      label: One sentence on what it does
+      description: Under 160 characters. This is the line on the card.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link to the code
+      description: A public repository. If there is no code, link a write-up or video detailed enough to rebuild it.
+      placeholder: https://github.com/you/project
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What it does and how you built it
+      description: A short paragraph. Mention the tools and anything people need besides Marrow.
+    validations:
+      required: true
+  - type: dropdown
+    id: connections
+    attributes:
+      label: Marrow connections it uses
+      multiple: true
+      options:
+        - Claude app
+        - Claude Desktop
+        - Claude Code
+        - ChatGPT
+        - Codex CLI
+        - Gemini app
+        - Gemini CLI
+        - Grok
+        - Le Chat
+        - Perplexity
+        - Notion
+        - Cursor
+        - VS Code Copilot
+        - Zed
+        - Cline
+        - OpenClaw
+        - Hermes Agent
+        - n8n
+        - Zapier
+        - Make
+        - Home Assistant
+        - Google Sheets
+        - Grafana Assistant
+        - Grafana dashboards
+        - InfluxDB
+        - Strava
+        - Custom connection (my own server or webhook)
+    validations:
+      required: true
+  - type: checkboxes
+    id: data
+    attributes:
+      label: Data it uses
+      options:
+        - label: Health metrics, daily totals
+        - label: Raw readings (heart rate, sleep stages and so on)
+        - label: Workouts
+        - label: Strength log
+        - label: Food diary
+        - label: Symptoms and mood
+        - label: An AI reading through MCP
+        - label: The AI logging things back to Apple Health
+  - type: textarea
+    id: image
+    attributes:
+      label: A picture
+      description: Drag in one screenshot or image, about 1600 by 900. Show only data you are happy to make public.
+  - type: input
+    id: license
+    attributes:
+      label: License
+      placeholder: MIT
+  - type: input
+    id: author
+    attributes:
+      label: How to credit you
+      description: A name and, if you like, a link (GitHub, site, Reddit).
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send
+      options:
+        - label: The code and pictures contain no API keys, tokens or passwords.
+          required: true
+        - label: The pictures show only my own data, and only data I am happy to make public.
+          required: true

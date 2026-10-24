@@ -1,0 +1,23 @@
+name: Check showcase
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 .github/scripts/validate.py
+      - name: Body Ops bridge compiles
+        run: python3 -m py_compile projects/body-ops/bridge/bridge.py projects/body-ops/tools/*.py projects/body-ops/dashboard/*.py
+      - name: Body Ops dashboard is up to date with its generator
+        run: |
+          cd projects/body-ops/dashboard
+          python3 overview.py
+          git diff --exit-code ../grafana/dashboards/body-ops.json

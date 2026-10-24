@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "projects": [
+    {
+      "id": "body-ops",
+      "title": "Body Ops",
+      "summary": "Every signal from your phone, watch and logs on one Grafana dashboard, updated every hour.",
+      "description": "Marrow's automations send health metrics, raw heart rate and sleep stages, workouts, the strength log and the food diary to a small bridge that writes them into InfluxDB. Grafana shows a year of heart rate by the hour, sleep stages and bed and wake times, resting heart rate and HRV, steps, food by macro and by hour, training volume by muscle and estimated one rep maxes. Docker Compose, with a demo mode that fills it with made-up data.",
+      "author": {"name": "Marrow Health", "url": "https://marrowhealthapp.com"},
+      "connections": ["influxdb", "grafana"],
+      "data": ["metrics", "samples", "workouts", "strength", "nutrition"],
+      "links": {"code": "https://github.com/MarrowHealth/built-with-marrow/tree/main/projects/body-ops"},
+      "image": "showcase/images/body-ops.webp",
+      "license": "MIT",
+      "official": true,
+      "added": "2026-10-24"
+    }
+  ]
+}

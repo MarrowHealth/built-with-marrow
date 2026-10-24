@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Help with the Marrow app
+    url: https://marrowhealthapp.com/support
+    about: Questions about the app itself, accounts or Marrow Pro.
+  - name: Setting up a connection
+    url: https://marrowhealthapp.com/connections
+    about: Step by step setup for every connection Marrow offers.
