@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
-"""Crash test for the bridge, no Docker or InfluxDB needed.
+"""Crash tests for the bridge, no Docker or InfluxDB needed.
 
-A fake InfluxDB keeps points in memory (writes add, deletes remove) and can
-hang its writes. The test:
+A fake InfluxDB keeps points in memory (writes add, deletes remove, a point
+with the same tags and time is replaced, as in InfluxDB). Each scenario sends
+the same three deliveries:
 
-1. starts the bridge, sends a year-style food delivery and a metrics delivery,
-   and kills the bridge with SIGKILL while the first write is hanging,
-   so the phone already has its 204 but nothing reached the database;
-2. starts the bridge again and, at once, sends a newer food delivery for the
-   same day (one entry instead of two);
-3. checks the resulting points: the metrics point exists, the day holds only
-   the newer food entry, and every file is marked done;
-4. starts a third time and checks nothing is written again.
+    A  a food day with two entries
+    M  a metrics day
+    B  a newer snapshot of the same food day, one entry, sent after a restart
+
+and compares the final points with a run that was never interrupted.
+
+1. Lost write: the bridge is killed (SIGKILL) while A's write hangs, so the
+   phone has its 204 but nothing reached the database. On restart A and M
+   must be written before B.
+2. Write landed, marker did not: the database accepts A's write, then the
+   bridge is killed before it can mark A done. On restart A is written a
+   second time, and the result must still match, with B landing last.
+
+After each, a clean restart must write nothing again.
 
     python3 tools/test_recovery.py
 """
@@ -35,10 +42,14 @@ DAY = "2001-01-02"
 
 
 class FakeInflux:
+    """mode "ok" answers at once. "hang" never stores the write. "store_then_hang"
+    stores the write and then never answers, like a crash right after the write."""
+
     def __init__(self):
-        self.points = {}  # (measurement, tags) -> fields line, latest wins like InfluxDB
+        self.points = {}
         self.writes = 0
-        self.hang = threading.Event()
+        self.mode = "ok"
+        self.landed = threading.Event()
         self.lock = threading.Lock()
         fake = self
 
@@ -46,20 +57,22 @@ class FakeInflux:
             def do_POST(self):
                 body = self.rfile.read(int(self.headers.get("Content-Length") or 0)).decode()
                 if self.path.startswith("/api/v2/write"):
-                    if fake.hang.is_set():
-                        time.sleep(30)  # the bridge is killed during this
+                    if fake.mode == "hang":
+                        time.sleep(30)
                         return
                     with fake.lock:
                         fake.writes += 1
                         for line in body.splitlines():
                             # tags end at the first unescaped space, the time follows the last one
                             cut = re.search(r"(?<!\\) ", line).start()
-                            head, rest = line[:cut], line[cut + 1:]
-                            fields, ts = rest.rsplit(" ", 1)
-                            fake.points[(head, ts)] = fields
+                            fields, ts = line[cut + 1:].rsplit(" ", 1)
+                            fake.points[(line[:cut], ts)] = fields
+                    if fake.mode == "store_then_hang":
+                        fake.landed.set()
+                        time.sleep(30)
+                        return
                 elif self.path.startswith("/api/v2/delete"):
-                    pred = json.loads(body)["predicate"]
-                    day = re.search(r'day="([^"]+)"', pred).group(1)
+                    day = re.search(r'day="([^"]+)"', json.loads(body)["predicate"]).group(1)
                     with fake.lock:
                         for k in [k for k in fake.points if k[0].startswith("meal,") and f"day={day}" in k[0]]:
                             del fake.points[k]
@@ -73,9 +86,9 @@ class FakeInflux:
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.url = f"http://127.0.0.1:{self.server.server_address[1]}"
 
-    def meals(self):
+    def snapshot(self):
         with self.lock:
-            return sorted(v for k, v in self.points.items() if k[0].startswith("meal,"))
+            return dict(self.points)
 
 
 def free_port():
@@ -84,22 +97,50 @@ def free_port():
         return s.getsockname()[1]
 
 
-def start(env, port):
-    p = subprocess.Popen([sys.executable, BRIDGE], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    for _ in range(100):
-        try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/{TOKEN}", timeout=1)
-            return p
-        except OSError:
-            time.sleep(0.1)
-    raise SystemExit("bridge did not start: " + (p.stdout.read() if p.poll() is not None else ""))
+class Bridge:
+    def __init__(self, fake):
+        self.fake = fake
+        self.port = free_port()
+        self.archive = tempfile.mkdtemp(prefix="bridge-archive-")
+        self.env = {**os.environ, "INFLUX_URL": fake.url, "INFLUX_TOKEN": "x", "BRIDGE_TOKEN": TOKEN,
+                    "ARCHIVE_DIR": self.archive, "BRIDGE_HOST": "127.0.0.1", "BRIDGE_PORT": str(self.port),
+                    "PORT": str(self.port), "TZ_NAME": "UTC"}
+        self.proc = None
 
+    def start(self):
+        self.proc = subprocess.Popen([sys.executable, BRIDGE], env=self.env, stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+        for _ in range(100):
+            try:
+                urllib.request.urlopen(f"http://127.0.0.1:{self.port}/{TOKEN}", timeout=1)
+                return
+            except OSError:
+                time.sleep(0.1)
+        raise SystemExit("bridge did not start")
 
-def post(port, body):
-    req = urllib.request.Request(f"http://127.0.0.1:{port}/{TOKEN}", data=json.dumps(body).encode(), method="POST",
-                                 headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=10) as r:
-        return r.status
+    def kill(self, sig=signal.SIGKILL):
+        self.proc.send_signal(sig)
+        self.proc.wait()
+
+    def post(self, body):
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}/{TOKEN}", data=json.dumps(body).encode(),
+                                     method="POST", headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return r.status
+
+    def wait_done(self, n, timeout=20):
+        end = time.time() + timeout
+        log = os.path.join(self.archive, "processed.log")
+        while time.time() < end:
+            if os.path.exists(log) and len(open(log).read().splitlines()) >= n:
+                st = json.load(urllib.request.urlopen(f"http://127.0.0.1:{self.port}/{TOKEN}", timeout=2))
+                if st["queued"] == 0:
+                    return
+            time.sleep(0.2)
+        raise SystemExit("bridge did not finish")
+
+    def marked(self):
+        return open(os.path.join(self.archive, "processed.log")).read().splitlines()
 
 
 def food(*entries):
@@ -108,63 +149,63 @@ def food(*entries):
          "logged_at": f"{DAY}T12:00:00Z"} for n, k in entries]}]}}
 
 
-METRICS = {"data": {"metrics": [{"name": "step_count", "units": "count", "data": [{"date": DAY, "qty": 8000}]}]}}
+A = food(("Old breakfast", 400), ("Old lunch", 700))
+M = {"data": {"metrics": [{"name": "step_count", "units": "count", "data": [{"date": DAY, "qty": 8000}]}]}}
+B = food(("New lunch", 650))
 
 
-def wait_idle(port, want_done, timeout=20):
-    end = time.time() + timeout
-    while time.time() < end:
-        st = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/{TOKEN}", timeout=2))
-        if st["queued"] == 0 and len(st["recent"]) >= want_done:
-            return st
-        time.sleep(0.2)
-    raise SystemExit(f"bridge did not finish: {st}")
+def uninterrupted():
+    fake = FakeInflux()
+    b = Bridge(fake)
+    b.start()
+    for body in (A, M, B):
+        assert b.post(body) == 204
+    b.wait_done(3)
+    b.kill(signal.SIGTERM)
+    return fake.snapshot()
+
+
+def interrupted(mode):
+    fake = FakeInflux()
+    b = Bridge(fake)
+    fake.mode = mode
+    b.start()
+    assert b.post(A) == 204
+    assert b.post(M) == 204
+    if mode == "store_then_hang":
+        assert fake.landed.wait(10), "A's write never reached the database"
+    else:
+        time.sleep(1.0)
+    b.kill()  # the phone has two 204s
+    fake.mode = "ok"
+    b.start()
+    assert b.post(B) == 204  # newer snapshot of the same day, right after the restart
+    b.wait_done(3)
+    b.kill(signal.SIGTERM)
+    final, marked = fake.snapshot(), b.marked()
+    before = fake.writes
+    b.start()
+    time.sleep(1.0)
+    b.kill(signal.SIGTERM)
+    return final, marked, fake.writes == before
 
 
 def main():
-    fake = FakeInflux()
-    archive = tempfile.mkdtemp(prefix="bridge-archive-")
-    port = free_port()
-    env = {**os.environ, "INFLUX_URL": fake.url, "INFLUX_TOKEN": "x", "BRIDGE_TOKEN": TOKEN, "ARCHIVE_DIR": archive,
-           "BRIDGE_HOST": "127.0.0.1", "BRIDGE_PORT": str(port), "TZ_NAME": "UTC"}
+    want = uninterrupted()
     ok = True
-
-    # 1. Two deliveries accepted, then the bridge dies mid-write.
-    fake.hang.set()
-    b = start(env, port)
-    assert post(port, food(("Old breakfast", 400), ("Old lunch", 700))) == 204
-    assert post(port, METRICS) == 204
-    time.sleep(1.0)
-    b.send_signal(signal.SIGKILL)
-    b.wait()
-    print("1. killed after two 204s, points in the database:", len(fake.points))
-
-    # 2. Restart, and a newer snapshot of the same day arrives right away.
-    fake.hang.clear()
-    b = start(env, port)
-    assert post(port, food(("New lunch", 650))) == 204
-    wait_idle(port, 3)
-    meals = fake.meals()
-    steps = [v for k, v in fake.points.items() if k[0].startswith("daily,") and "step_count" in k[0]]
-    done = open(os.path.join(archive, "processed.log")).read().splitlines()
-    checks = [("the metrics delivery was written after the restart", steps == ["qty=8000.0"]),
-              ("the day holds only the newer food entry", len(meals) == 1 and "New lunch" in meals[0]),
-              ("all three deliveries are marked done", len(done) == 3 and all(l.endswith("\tok") for l in done))]
-    b.send_signal(signal.SIGTERM)
-    b.wait()
-
-    # 3. A clean restart writes nothing again.
-    before = fake.writes
-    b = start(env, port)
-    time.sleep(1.0)
-    checks.append(("a clean restart writes nothing again", fake.writes == before))
-    b.send_signal(signal.SIGTERM)
-    b.wait()
-
-    for name, passed in checks:
-        print(("ok    " if passed else "FAIL  ") + name)
-        ok &= passed
-    print("recovery test passed" if ok else "recovery test FAILED")
+    for name, mode in (("lost write", "hang"), ("write landed, marker did not", "store_then_hang")):
+        final, marked, quiet = interrupted(mode)
+        checks = [("final points match a run that was never interrupted", final == want),
+                  ("the day holds only the newer food entry",
+                   sorted(v for k, v in final.items() if k[0].startswith("meal,")) == sorted(
+                       v for k, v in want.items() if k[0].startswith("meal,"))),
+                  ("all three deliveries are marked done", len(marked) == 3 and all(m.endswith("\tok") for m in marked)),
+                  ("a clean restart writes nothing again", quiet)]
+        print(f"{name}:")
+        for label, passed in checks:
+            print(("  ok    " if passed else "  FAIL  ") + label)
+            ok &= passed
+    print("recovery tests passed" if ok else "recovery tests FAILED")
     sys.exit(0 if ok else 1)
 
 
