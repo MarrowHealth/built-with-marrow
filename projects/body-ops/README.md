@@ -101,6 +101,8 @@ The bridge (`bridge/bridge.py`, standard library Python) accepts every automatio
 | Nutrition diary | `meal` (name in `food`, nutrients as `n_*`) | day, idx, meal | logged time (see below) |
 | Symptoms and mood | `symptom`, `mood` | name and severity, kind | start or time |
 
+A delivery only counts as done once its points are in InfluxDB, and the bridge records that in `archive/processed.log`. If it stops in between (a crash, a restart, InfluxDB down), the next start writes every unfinished delivery, oldest first, before anything new, so a newer snapshot of a food day always lands last. While InfluxDB is unreachable it waits and retries in order. `python3 tools/test_recovery.py` kills the bridge mid-write and checks the resulting points (no Docker needed). The first start after upgrading from a version without `processed.log` writes the whole archive once, which is safe.
+
 Marrow re-sends the last two days on every "Since last run" on purpose, so the bridge treats every point as latest-wins, and a food day is cleared and rewritten so deleted entries disappear. Each set is tagged with its main muscle from `bridge/muscles.json`, built from the public domain [free-exercise-db](https://github.com/yuhonas/free-exercise-db).
 
 A meal's time is when it was logged, and Marrow uses a default time for each meal (breakfast 8 am, lunch noon, dinner 6 pm) when you log into a meal rather than as you eat. So the dashboard groups food by meal and by day, never by the clock.

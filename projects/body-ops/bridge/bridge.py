@@ -12,6 +12,12 @@ carries "Authorization: Bearer <BRIDGE_TOKEN>". Anything else gets a 404.
 GET on the same URL shows the last deliveries (kinds and counts, no values).
 CSV gets a 415: pick JSON in Marrow.
 
+Every delivery is written to InfluxDB exactly in the order it arrived. A
+delivery counts as done only once its points are written: archive/processed.log
+records it. If the bridge stops in between (a crash, a restart, InfluxDB down),
+the next start writes every unfinished delivery, oldest first, before any new
+one. While InfluxDB is unreachable the worker waits and retries, still in order.
+
 Replay the archive into a fresh bucket (latest wins, safe to repeat):
     python3 bridge.py replay ["2026/10/**/*.json.gz"]
 
@@ -20,6 +26,7 @@ Standard library only. Python 3.9+.
 import glob
 import gzip
 import json
+import zlib
 import os
 import queue
 import secrets
@@ -50,6 +57,8 @@ CHUNK = 5000
 
 jobs = queue.Queue()
 recent = []  # last deliveries, newest first
+DONE_LOG = os.path.join(ARCHIVE, "processed.log")
+intake = threading.Lock()  # archive name order is queue order
 
 # Exercise name -> main muscle group, for the volume charts. Built from the
 # public domain free-exercise-db, as curated in Marrow's exercise library.
@@ -269,24 +278,71 @@ def process(path):
 # ---- HTTP ----------------------------------------------------------------------------------
 
 def archive(raw):
+    """Write atomically, named by the microsecond, so a half-written file never
+    exists and the names sort in arrival order."""
     now = datetime.now(timezone.utc)
     folder = os.path.join(ARCHIVE, now.strftime("%Y/%m/%d"))
     os.makedirs(folder, exist_ok=True)
-    path = os.path.join(folder, now.strftime("%H%M%S-") + secrets.token_hex(3) + ".json.gz")
-    with gzip.open(path, "wb") as f:
+    path = os.path.join(folder, now.strftime("%H%M%S%f-") + secrets.token_hex(3) + ".json.gz")
+    with gzip.open(path + ".tmp", "wb") as f:
         f.write(raw)
+    os.replace(path + ".tmp", path)
     return path
+
+
+def arrival(path):
+    """Sort key: day folders, then the time in the name. Names from before the
+    microsecond change (HHMMSS-...) sort as that second's start."""
+    rel = os.path.relpath(path, ARCHIVE)
+    head, name = os.path.split(rel)
+    return head, name.split("-", 1)[0].ljust(12, "0"), name
+
+
+def mark_done(path, status):
+    line = f"{os.path.relpath(path, ARCHIVE)}\t{status}\n"
+    with open(DONE_LOG, "a", encoding="utf-8") as f:
+        f.write(line)
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def unfinished():
+    """Deliveries archived but never marked done, oldest first."""
+    done = set()
+    if os.path.exists(DONE_LOG):
+        with open(DONE_LOG, encoding="utf-8") as f:
+            done = {ln.split("\t", 1)[0] for ln in f if ln.strip()}
+    files = glob.glob(os.path.join(ARCHIVE, "*", "*", "*", "*.json.gz"))
+    return sorted((p for p in files if os.path.relpath(p, ARCHIVE) not in done), key=arrival)
+
+
+def permanent(e):
+    """True when retrying can never help: a damaged file or a body InfluxDB rejects."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code < 500 and e.code != 429
+    return isinstance(e, (ValueError, KeyError, TypeError, EOFError, gzip.BadGzipFile, zlib.error))
 
 
 def worker():
     while True:
         path, size = jobs.get()
-        t0 = time.time()
-        try:
-            kind, n = process(path)
-            rec = {"kind": kind, "points": n, "ok": True}
-        except Exception as e:  # keep the archive, report, carry on
-            rec = {"kind": "?", "ok": False, "error": f"{type(e).__name__}: {str(e)[:200]}"}
+        t0, attempt = time.time(), 0
+        while True:
+            try:
+                kind, n = process(path)
+                mark_done(path, "ok")
+                rec = {"kind": kind, "points": n, "ok": True}
+                break
+            except Exception as e:
+                if permanent(e):  # keep the archive, record it, move on
+                    mark_done(path, "failed")
+                    rec = {"kind": "?", "ok": False, "error": f"{type(e).__name__}: {str(e)[:200]}"}
+                    break
+                attempt += 1  # InfluxDB unreachable or busy: wait, then retry this same delivery
+                wait = min(300, 5 * 2 ** min(attempt, 6))
+                print(json.dumps({"retry": os.path.relpath(path, ARCHIVE), "in_s": wait,
+                                  "error": f"{type(e).__name__}: {str(e)[:120]}"}), flush=True)
+                time.sleep(wait)
         rec.update({"at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     "bytes": size, "secs": round(time.time() - t0, 1),
                     "file": os.path.relpath(path, ARCHIVE)})
@@ -327,10 +383,11 @@ class Handler(BaseHTTPRequestHandler):
         if len(raw) < size:  # the phone gave up mid-upload: never archive half a body
             return self.reply(400, "incomplete body")
         try:
-            path = archive(raw)
+            with intake:
+                path = archive(raw)
+                jobs.put((path, size))
         except OSError as e:
             return self.reply(500, f"archive failed: {e}")
-        jobs.put((path, size))
         self.send_response(204)
         self.end_headers()
 
@@ -348,6 +405,14 @@ def main():
                 kind, n = f"skipped ({type(e).__name__})", 0
             print(os.path.relpath(path, ARCHIVE), kind, n, flush=True)
         return
+    # Unfinished deliveries go first, so they land before anything newer for
+    # the same day (a food delivery replaces its whole day).
+    os.makedirs(ARCHIVE, exist_ok=True)
+    backlog = unfinished()
+    for path in backlog:
+        jobs.put((path, os.path.getsize(path)))
+    if backlog:
+        print(f"resuming {len(backlog)} unfinished deliveries, oldest first", flush=True)
     threading.Thread(target=worker, daemon=True).start()
     print(f"bridge listening on {HOST}:{PORT}", flush=True)
     ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
