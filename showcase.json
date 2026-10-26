@@ -33,7 +33,7 @@
       "id": "year-in-rings",
       "title": "A Year in Rings",
       "summary": "One picture of a year: heart rate, sleep, steps, calories, sound and daylight as six clock rings, from Body Ops data.",
-      "description": "Six ring charts in one image. Each ring is a day, oldest in the middle; each slice is an hour, midnight at the top; the color is that hour's value. Heart rate, steps, calories burned, sound and daylight come from Marrow's raw samples, and sleep is one arc per night from falling asleep to waking up. One Python script reads the Body Ops InfluxDB and writes a page that draws the picture and saves it as a PNG.",
+      "description": "Six ring charts in one image. Each ring is a day, oldest in the middle. Each slice is an hour, midnight at the top. The color is that hour's value. Heart rate, steps, calories burned, sound and daylight come from Marrow's raw samples, and sleep is one arc per night from falling asleep to waking up. One Python script reads the Body Ops InfluxDB and writes a page that draws the picture and saves it as a PNG.",
       "author": {
         "name": "Marrow Health",
         "url": "https://marrowhealthapp.com"
