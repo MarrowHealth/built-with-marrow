@@ -1,0 +1,146 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>A year in six rings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;800&display=swap">
+<style>
+  html, body { margin: 0; background: #0b0e16; color: #eef0f6; font-family: Inter, system-ui, sans-serif; }
+  #poster { display: block; width: 3000px; height: 2320px; }
+  #bar { position: fixed; top: 12px; right: 12px; display: flex; gap: 8px; }
+  button { font: 600 14px Inter, system-ui, sans-serif; color: #0b0e16; background: #eef0f6; border: 0;
+           border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+</style>
+<canvas id="poster" width="3000" height="2320"></canvas>
+<div id="bar"><button id="save">Download PNG</button></div>
+<script>
+const DATA = /*DATA*/null;
+const TAU = Math.PI * 2;
+const W = 3000, H = 2320, COLS = 3, CW = 1000, CH = 1160, TITLE = 80, CY = 620, R0 = 80, R1 = 390, LEG = 1096;
+const BG = "#0b0e16", NAVY = [14, 18, 44];
+
+function scale(stops) {
+  return v => {
+    if (v <= stops[0][0]) return stops[0][1];
+    for (let i = 1; i < stops.length; i++) {
+      if (v <= stops[i][0]) {
+        const [a, ca] = stops[i - 1], [b, cb] = stops[i], t = (v - a) / (b - a);
+        return ca.map((x, k) => Math.round(x + (cb[k] - x) * t));
+      }
+    }
+    return stops[stops.length - 1][1];
+  };
+}
+const rgb = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+const ang = h => -Math.PI / 2 + (h / 24) * TAU;  // hour -> angle, midnight at the top, clockwise
+
+// One entry per ring: a title, where its data comes from, a color scale and the legend ends.
+// A "grid" ring is [day][hour] values; "arcs" draws one arc per night.
+const CHARTS = [
+  { title: "Heart rate", kind: "grid", ring: "heart", lo: 45, hi: 120, ends: ["45 bpm", "120 bpm"],
+    color: scale([[45, NAVY], [54, [34, 30, 98]], [64, [82, 62, 200]], [76, [150, 86, 225]], [88, [225, 88, 160]],
+                  [100, [255, 100, 110]], [112, [250, 170, 50]], [125, [255, 236, 170]]]) },
+  { title: "Sleep", kind: "arcs", lo: 4, hi: 10, ends: ["4 h", "10 h asleep"],
+    color: scale([[4, [255, 93, 115]], [5.5, [200, 90, 190]], [7, [124, 92, 255]], [8.5, [59, 130, 246]], [10, [34, 195, 181]]]) },
+  { title: "Steps", kind: "grid", ring: "steps", lo: 0, hi: 3000, ends: ["0", "3,000+ steps in an hour"],
+    color: scale([[0, NAVY], [150, [24, 60, 110]], [600, [34, 195, 181]], [1500, [245, 165, 36]], [3000, [255, 240, 190]]]) },
+  { title: "Calories burned", kind: "grid", ring: "energy", lo: 0, hi: 300, ends: ["0", "300+ kcal in an hour"],
+    color: scale([[0, NAVY], [15, [40, 28, 80]], [60, [160, 50, 120]], [140, [255, 93, 115]], [220, [255, 160, 60]], [300, [255, 240, 190]]]) },
+  { title: "Sound around me", kind: "grid", ring: "sound", lo: 45, hi: 90, ends: ["45 dB", "90 dB"],
+    color: scale([[45, NAVY], [52, [20, 50, 90]], [60, [30, 120, 160]], [68, [34, 195, 181]], [78, [200, 230, 120]], [90, [255, 245, 200]]]) },
+  { title: "Daylight", kind: "grid", ring: "daylight", lo: 0, hi: 60, ends: ["0", "60 min in daylight"],
+    color: scale([[0, NAVY], [8, [60, 40, 90]], [25, [220, 110, 70]], [45, [255, 190, 60]], [60, [255, 245, 190]]]) },
+];
+
+function frame(ctx, cx, cy, days, months, ring) {
+  ctx.strokeStyle = "rgba(255,255,255,0.10)"; ctx.lineWidth = 1;
+  ctx.font = "500 14px Inter"; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  for (const m of months) {
+    if (m.d < 0 || m.d >= days) continue;
+    const r = R0 + m.d * ring;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.stroke();
+    ctx.fillStyle = "rgba(238,240,246,0.7)";
+    ctx.fillText(m.name + (m.name === "Jan" ? " " + m.year : ""), cx + 7, cy - r - 8);
+  }
+  ctx.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx.beginPath(); ctx.moveTo(cx, cy - R0); ctx.lineTo(cx, cy - R1 - 14); ctx.stroke();
+  ctx.textAlign = "center";
+  for (let h = 0; h < 24; h++) {
+    const a = ang(h), big = h % 6 === 0;
+    ctx.strokeStyle = big ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.18)";
+    ctx.lineWidth = big ? 2 : 1;
+    ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * (R1 + 5), cy + Math.sin(a) * (R1 + 5));
+    ctx.lineTo(cx + Math.cos(a) * (R1 + (big ? 18 : 11)), cy + Math.sin(a) * (R1 + (big ? 18 : 11))); ctx.stroke();
+    if (h % 3 === 0) {
+      const lab = h === 0 ? "midnight" : h === 12 ? "noon" : (h % 12) + (h < 12 ? " am" : " pm");
+      ctx.font = (big ? "600 19px" : "500 15px") + " Inter";
+      ctx.fillStyle = big ? "#eef0f6" : "rgba(238,240,246,0.6)";
+      const rr = R1 + (big ? 42 : 32);
+      ctx.fillText(lab, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr + 1);
+    }
+  }
+}
+
+function cells(ctx, cx, cy, ring, grid, color) {
+  for (let d = 0; d < grid.length; d++) {
+    const r0 = R0 + d * ring, r1 = r0 + ring + 0.6;
+    for (let h = 0; h < 24; h++) {
+      const v = grid[d][h];
+      if (v == null) continue;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r1, ang(h), ang(h + 1) + 0.002);
+      ctx.arc(cx, cy, r0, ang(h + 1) + 0.002, ang(h), true);
+      ctx.closePath();
+      ctx.fillStyle = rgb(color(v));
+      ctx.fill();
+    }
+  }
+}
+
+function legend(ctx, c, x, y) {
+  ctx.font = "500 18px Inter"; ctx.textBaseline = "middle"; ctx.fillStyle = "#8b93a7";
+  const bw = 300, bh = 12, gap = 12;
+  ctx.textAlign = "right"; const lw = ctx.measureText(c.ends[0]).width, rw = ctx.measureText(c.ends[1]).width;
+  const total = lw + gap + bw + gap + rw, x0 = x + CW / 2 - total / 2;
+  ctx.fillText(c.ends[0], x0 + lw, y);
+  const g = ctx.createLinearGradient(x0 + lw + gap, 0, x0 + lw + gap + bw, 0);
+  for (let i = 0; i <= 20; i++) g.addColorStop(i / 20, rgb(c.color(c.lo + (c.hi - c.lo) * i / 20)));
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.roundRect(x0 + lw + gap, y - bh / 2, bw, bh, bh / 2); ctx.fill();
+  ctx.fillStyle = "#8b93a7"; ctx.textAlign = "left";
+  ctx.fillText(c.ends[1], x0 + lw + gap + bw + gap, y);
+}
+
+function draw() {
+  const ctx = document.getElementById("poster").getContext("2d");
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+  CHARTS.forEach((c, i) => {
+    const x = (i % COLS) * CW, y = Math.floor(i / COLS) * CH, cx = x + CW / 2, cy = y + CY;
+    const src = c.kind === "arcs" ? null : DATA.rings[c.ring];
+    if (c.kind === "grid" && !src) return;
+    const days = c.kind === "arcs" ? DATA.days : src.grid.length, from = src ? src.from : 0;
+    const ring = (R1 - R0) / days;
+    ctx.font = "800 36px Inter"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#eef0f6";
+    ctx.fillText(c.title, cx, y + TITLE);
+    if (c.kind === "arcs") {
+      for (const n of DATA.nights) {
+        const r = R0 + (n.d + 0.5) * ring;
+        let s = n.s, e = n.e;
+        if (e < s) e += 24;
+        ctx.beginPath(); ctx.arc(cx, cy, r, ang(s), ang(e));
+        ctx.lineWidth = ring + 0.6; ctx.strokeStyle = rgb(c.color(n.h)); ctx.stroke();
+      }
+    } else {
+      cells(ctx, cx, cy, ring, src.grid, c.color);
+    }
+    frame(ctx, cx, cy, days, DATA.months.map(m => ({ ...m, d: m.d - from })), ring);
+    legend(ctx, c, x, y + LEG);
+  });
+  window.__drawn = true;
+}
+document.getElementById("save").onclick = () => {
+  const a = document.createElement("a");
+  a.download = `rings-${DATA.last}.png`;
+  a.href = document.getElementById("poster").toDataURL("image/png");
+  a.click();
+};
+document.fonts.ready.then(() => document.fonts.load("800 36px Inter")).then(draw, draw);
+</script>

@@ -11,6 +11,7 @@ The same list is on the site: **[marrowhealthapp.com/built-with](https://marrowh
 | Project | What it does | Connections | By |
 |---|---|---|---|
 | [Body Ops](projects/body-ops) | Every signal from your phone, watch and logs on one Grafana dashboard: a year of heart rate by the hour, sleep stages, steps, food, lifting and more. Docker Compose, about fifteen minutes to set up, with a demo mode to try it first. | InfluxDB, Grafana | Marrow Health |
+| [A Year in Rings](projects/year-in-rings) | One picture of a year: heart rate, sleep, steps, calories burned, sound and daylight as six clock rings, drawn from Body Ops data by one script. | InfluxDB | Marrow Health |
 
 The full list, with the details the site uses, is in [showcase.json](showcase.json).
 

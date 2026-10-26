@@ -15,7 +15,7 @@ jobs:
           python-version: "3.12"
       - run: python3 .github/scripts/validate.py
       - name: Body Ops bridge compiles
-        run: python3 -m py_compile projects/body-ops/bridge/bridge.py projects/body-ops/tools/*.py projects/body-ops/dashboard/*.py
+        run: python3 -m py_compile projects/body-ops/bridge/bridge.py projects/body-ops/tools/*.py projects/body-ops/dashboard/*.py projects/year-in-rings/rings.py
       - name: Body Ops bridge survives a crash mid-write
         run: python3 projects/body-ops/tools/test_recovery.py
       - name: Body Ops dashboard is up to date with its generator
