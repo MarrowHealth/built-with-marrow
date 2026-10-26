@@ -70,9 +70,14 @@ def pull():
 
     rings = {}
     for name, (metric, fn) in HOURLY.items():
+        # A phone and a watch both count steps and calories, and Apple keeps the higher
+        # one per interval rather than adding them. Same here: per device, then the max.
+        agg = ('|> group(columns: ["source"]) |> aggregateWindow(every: 1h, fn: sum, createEmpty: false)\n'
+               '  |> group(columns: ["_time"]) |> max() |> group()' if fn == "sum"
+               else '|> group() |> aggregateWindow(every: 1h, fn: mean, createEmpty: false)')
         rows = query(f'''from(bucket: "health") |> {rng}
   |> filter(fn: (r) => r._measurement == "sample" and r.metric == "{metric}" and r._field == "value")
-  |> group() |> aggregateWindow(every: 1h, fn: {fn}, createEmpty: false)''')
+  {agg} |> keep(columns: ["_time", "_value"])''')
         grid = [[None] * 24 for _ in range(a.days)]
         for r in rows:
             d, t = local(r["_time"], 1)  # a window is stamped with its end, so step back into it
