@@ -52,6 +52,31 @@
       "license": "MIT",
       "official": true,
       "added": "2026-10-26"
+    },
+    {
+      "id": "annulus",
+      "title": "Annulus",
+      "summary": "A personal web dashboard for a self-hosted Marrow mirror: rings, sleep, heart rate and HRV, weight, workouts and food in four tabs.",
+      "description": "A sync job copies a self-hosted Marrow mirror into InfluxDB, and Annulus turns it into one page with four tabs. Today shows rings, last night's sleep and vitals against a 30-day baseline. Recent covers the month and bed and wake times. Insights compares the last 30 days with the 90 before. Years shows lifetime records and long-term trends. Plain JavaScript with hand-drawn SVG charts and no build step. The interface is in Chinese, and a demo runs on made-up data with one command.",
+      "author": {
+        "name": "pku-zhb",
+        "url": "https://github.com/pku-zhb"
+      },
+      "connections": [
+        "influxdb"
+      ],
+      "data": [
+        "metrics",
+        "samples",
+        "workouts",
+        "nutrition"
+      ],
+      "links": {
+        "code": "https://github.com/pku-zhb/annulus"
+      },
+      "image": "showcase/images/annulus.webp",
+      "license": "MIT",
+      "added": "2026-11-17"
     }
   ]
 }
