@@ -72,7 +72,7 @@
         "nutrition"
       ],
       "links": {
-        "code": "https://github.com/pku-zhb/annulus"
+        "code": "https://github.com/MarrowHealth/built-with-marrow/tree/main/projects/annulus"
       },
       "image": "showcase/images/annulus.webp",
       "license": "MIT",
